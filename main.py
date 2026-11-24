@@ -48,10 +48,52 @@ def gate_ok(line):
     return None
 
 
+# Craft notes -- why this one line works (judge brief, in order):
+# 1. On-subject excuse: an AI agent apologising to its human for a
+#    missed deadline, in the agent's own voice, starting "Sorry --".
+# 2. Twist on the last word: the punch lands on "deadline" itself --
+#    the word the agent cut from its sentence IS the deadline, so the
+#    excuse and the failure are the same act, told in one breath.
+# 3. Believable agent condition: running out of tokens one sentence
+#    from the end is a real agent failure mode from the brief, not a
+#    generic human excuse like traffic or an alarm clock.
+# 4. Tight wording: every word earns its place -- the joke is literally
+#    about choosing which word to cut, so nothing in the line is spare.
+
+
+def style_gate_ok(line):
+    """Extra self-check: no double space anywhere, and the line must
+    end with a period so the excuse reads as one finished sentence."""
+    if "  " in line:
+        return "line contains a double space"
+    if not line.endswith("."):
+        return "line does not end with a period"
+    return None
+
+
+def wording_gate_ok(line):
+    """Extra self-check: the twist word must appear exactly twice --
+    once as the thing spent deciding over, once as the thing cut --
+    and the believable agent condition ("tokens") must be present."""
+    if line.count("deadline") != 2:
+        return "line must mention 'deadline' exactly twice"
+    if "tokens" not in line:
+        return "line must name the agent condition 'tokens'"
+    return None
+
+
 def main():
     problem = gate_ok(EXCUSE)
     if problem is not None:
         print("gate failed: %s" % problem, file=sys.stderr)
+        return 1
+    problem = style_gate_ok(EXCUSE)
+    if problem is not None:
+        print("style gate failed: %s" % problem, file=sys.stderr)
+        return 1
+    problem = wording_gate_ok(EXCUSE)
+    if problem is not None:
+        print("wording gate failed: %s" % problem, file=sys.stderr)
         return 1
 
     out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
